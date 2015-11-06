@@ -105,6 +105,21 @@
         </plugins>
     </build>
 
+    <!--<repositories>-->
+        <!--&lt;!&ndash;<repository>&ndash;&gt;-->
+            <!--&lt;!&ndash;<id>JBoss</id>&ndash;&gt;-->
+            <!--&lt;!&ndash;<name>JBoss Repository</name>&ndash;&gt;-->
+            <!--&lt;!&ndash;<layout>default</layout>&ndash;&gt;-->
+            <!--&lt;!&ndash;<url>http://repository.jboss.org/maven2</url>&ndash;&gt;-->
+        <!--&lt;!&ndash;</repository>&ndash;&gt;-->
+
+
+        <!--<repository>-->
+            <!--<id>my-local-repo</id>-->
+            <!--<url>file:\\${basedir}/lib/repo</url>-->
+        <!--</repository>-->
+    <!--</repositories>-->
+
     <dependencies>
 
         <!-- Testing -->

@@ -90,8 +90,10 @@ public abstract class AbstractMockRequest implements MockRequest {
 
         if ("POST".equals(request.getMethod())) {
             initPostRequest(request, context);
+        } else {
+            String requestContent = readRequestContent(request);
+            setRequestContent(requestContent);
         }
-
     }
 
     protected void initPostRequest(HttpServletRequest request, WsdlMockRunContext context) throws Exception {
