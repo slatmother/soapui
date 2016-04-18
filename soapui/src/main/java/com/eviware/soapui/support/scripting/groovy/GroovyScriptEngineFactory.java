@@ -22,8 +22,13 @@ import com.eviware.soapui.model.propertyexpansion.PropertyExpansion;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngine;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngineFactory;
 import com.eviware.soapui.support.scripting.SoapUIScriptGenerator;
+import com.eviware.soapui.support.scripting.groovy.holders.GroovyStaticClassLoaderHolder;
 import com.eviware.soapui.support.types.StringToStringMap;
 import com.eviware.soapui.support.xml.XPathData;
+import groovy.lang.GroovyClassLoader;
+
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
  * Factory for creating Groovy ScriptEngines
@@ -32,10 +37,19 @@ import com.eviware.soapui.support.xml.XPathData;
  */
 
 public class GroovyScriptEngineFactory implements SoapUIScriptEngineFactory, SoapUIScriptGenerator {
+    public static final String EXT_DIR_PROPERTY_NAME = "SYSTEM:EXT_DIR";
     public static final String ID = "Groovy";
 
     public SoapUIScriptEngine createScriptEngine(ModelItem modelItem) {
-        return new SoapUIGroovyScriptEngine(SoapUI.getSoapUICore().getExtensionClassLoader());
+        String extDir = modelItem.getProject().getPropertyValue(EXT_DIR_PROPERTY_NAME);
+
+        SoapUIGroovyScriptEngine engine = new SoapUIGroovyScriptEngine();
+
+        if (extDir != null && !extDir.equals("")) {
+            GroovyStaticClassLoaderHolder.getInstance().addClassPath(extDir);
+        }
+
+        return engine;
     }
 
     public SoapUIScriptGenerator createCodeGenerator(ModelItem modelItem) {
@@ -74,5 +88,28 @@ public class GroovyScriptEngineFactory implements SoapUIScriptEngineFactory, Soa
         script += "\nassert node != null\n";
 
         return script;
+    }
+
+    private void addScriptsToClassLoader(String extDir, GroovyClassLoader extClassLoader) {
+        try {
+            File dir = new File(extDir);
+
+            if (dir.exists() && dir.isDirectory()) {
+                File[] files = dir.listFiles();
+
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.getName().toLowerCase().endsWith(".groovy")) {
+                            extClassLoader.addURL(file.toURI().toURL());
+                            SoapUI.log.info("Adding [" + file.getAbsolutePath() + "] to extensions classpath");
+                        }
+                    }
+                }
+            } else {
+                SoapUI.log.warn("Missing folder [" + dir.getAbsolutePath() + "] for external libraries");
+            }
+        } catch (MalformedURLException e) {
+            SoapUI.log.error("External scripts adding failed", e);
+        }
     }
 }

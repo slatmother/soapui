@@ -67,13 +67,7 @@ import com.eviware.soapui.model.propertyexpansion.PropertyExpansionContainer;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpansionContext;
 import com.eviware.soapui.model.settings.Settings;
 import com.eviware.soapui.model.support.ModelSupport;
-import com.eviware.soapui.model.testsuite.ProjectRunContext;
-import com.eviware.soapui.model.testsuite.ProjectRunListener;
-import com.eviware.soapui.model.testsuite.ProjectRunner;
-import com.eviware.soapui.model.testsuite.TestCase;
-import com.eviware.soapui.model.testsuite.TestRunnable;
-import com.eviware.soapui.model.testsuite.TestStep;
-import com.eviware.soapui.model.testsuite.TestSuite;
+import com.eviware.soapui.model.testsuite.*;
 import com.eviware.soapui.model.testsuite.TestSuite.TestSuiteRunType;
 import com.eviware.soapui.settings.ProjectSettings;
 import com.eviware.soapui.settings.UISettings;
@@ -86,6 +80,7 @@ import com.eviware.soapui.support.resolver.ResolveContext;
 import com.eviware.soapui.support.resolver.ResolveDialog;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngine;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngineRegistry;
+import com.eviware.soapui.support.scripting.groovy.holders.GroovyStaticClassLoaderHolder;
 import com.eviware.soapui.support.types.StringToObjectMap;
 import com.eviware.soapui.support.xml.XmlUtils;
 import org.apache.commons.ssl.OpenSSL;
@@ -367,6 +362,38 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         }
 
         setPropertiesConfig(getConfig().getProperties());
+        addTestPropertyListener(new TestPropertyListener() {
+            @Override
+            public void propertyAdded(String name) {
+               //
+            }
+
+            @Override
+            public void propertyRemoved(String name) {
+               //
+            }
+
+            @Override
+            public void propertyRenamed(String oldName, String newName) {
+               //
+            }
+
+            @Override
+            public void propertyValueChanged(String name, String oldValue, String newValue) {
+                SoapUI.log(String.format("Handled property %s value changed. Old value: %s, new value: %s", name, oldValue, newValue));
+
+                if ("SYSTEM:EXT_DIR".equalsIgnoreCase(name) && newValue != null && !"".equals(newValue)) {
+                    SoapUI.log("Resolved project property name: SYSTEM:EXT_DIR");
+
+                    GroovyStaticClassLoaderHolder.getInstance().addClassPath(newValue);
+                }
+            }
+
+            @Override
+            public void propertyMoved(String name, int oldIndex, int newIndex) {
+               //
+            }
+        });
 
         List<InterfaceConfig> interfaceConfigs = getConfig().getInterfaceList();
         for (InterfaceConfig config : interfaceConfigs) {

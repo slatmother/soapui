@@ -16,6 +16,8 @@
 
 package com.eviware.soapui.support.scripting.groovy;
 
+import com.eviware.soapui.support.scripting.groovy.holders.GroovyStaticBindingsHolder;
+import com.eviware.soapui.support.scripting.groovy.holders.GroovyStaticClassLoaderHolder;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
@@ -42,9 +44,10 @@ public class SoapUIGroovyScriptEngine implements SoapUIScriptEngine {
     private String scriptText;
     protected ScriptSaver saver = new ScriptSaver();
 
-    public SoapUIGroovyScriptEngine(ClassLoader parentClassLoader) {
-        classLoader = new GroovyClassLoader(parentClassLoader);
-        binding = new Binding();
+    public SoapUIGroovyScriptEngine() {
+        classLoader = new GroovyClassLoader(GroovyStaticClassLoaderHolder.getInstance().getClassLoader());
+        binding = GroovyStaticBindingsHolder.getInstance().getBinding();
+
         CompilerConfiguration config = new CompilerConfiguration();
         config.setDebug(true);
         config.setVerbose(true);
@@ -112,6 +115,10 @@ public class SoapUIGroovyScriptEngine implements SoapUIScriptEngine {
             }
 
             classLoader.clearCache();
+
+            if (classLoader.getParent() instanceof GroovyClassLoader) {
+                ((GroovyClassLoader) classLoader.getParent()).clearCache();
+            }
         }
 
         this.scriptText = scriptText;
@@ -150,6 +157,7 @@ public class SoapUIGroovyScriptEngine implements SoapUIScriptEngine {
     public synchronized void clearVariables() {
         if (binding != null) {
             binding.getVariables().clear();
+            binding.getVariables().putAll(GroovyStaticBindingsHolder.getInstance().getVarsMap());
         }
     }
 
